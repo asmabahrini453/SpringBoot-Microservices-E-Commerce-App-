@@ -6,11 +6,6 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-      </profile>
-      <profile name="Annotation profile for config-server" enabled="true">
-        <sourceOutputDir name="../../../../Downloads/config-server/config-server/target/generated-sources/annotations" />
-        <sourceTestOutputDir name="../../../../Downloads/config-server/config-server/target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
         <module name="config-server" />
       </profile>
     </annotationProcessing>

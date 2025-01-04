@@ -94,6 +94,7 @@ services:
     ports:
       - 1080:1080
       - 1025:1025
+      #Port 1025 handles incoming emails (SMTP functionality), and port 1080 provides a UI for viewing those emails.
 
 networks:
   microservices-net:

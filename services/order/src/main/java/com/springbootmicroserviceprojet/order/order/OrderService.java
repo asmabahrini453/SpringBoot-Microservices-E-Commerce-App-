@@ -2,6 +2,8 @@ package com.springbootmicroserviceprojet.order.order;
 
 import com.springbootmicroserviceprojet.order.customer.CustomerClient;
 import com.springbootmicroserviceprojet.order.exception.BusinessException;
+import com.springbootmicroserviceprojet.order.kafka.OrderConfirmation;
+import com.springbootmicroserviceprojet.order.kafka.OrderProducer;
 import com.springbootmicroserviceprojet.order.orderline.OrderLineRequest;
 import com.springbootmicroserviceprojet.order.orderline.OrderLineService;
 import com.springbootmicroserviceprojet.order.product.ProductClient;
@@ -23,6 +25,7 @@ public class OrderService {
     private final CustomerClient customerClient;
     private final ProductClient productClient;
     private final OrderLineService orderLineService;
+    private final OrderProducer orderProducer;
 
     @Transactional
     public Integer createOrder(OrderRequest request) {
@@ -54,7 +57,15 @@ public class OrderService {
 
 
         //send the order confirmation using the notifacation microservice (kafka)
-
+        orderProducer.sendOrderConfirmation(
+                new OrderConfirmation(
+                        request.reference(),
+                        request.amount(),
+                        request.paymentMethod(),
+                        customer,
+                        purchasedProducts
+                )
+        );
 
         return order.getId();
     }

@@ -11,7 +11,14 @@ spring:
       ddl-auto: create
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-
+    #serialization with json for kafka
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.type.mapping: orderConfirmation:com.springbootmicroserviceprojet.order.kafka.OrderConfirmation
 application:
   config:
     customer-url: http://localhost:8222/api/v1/customers #8222 : the api gateway port

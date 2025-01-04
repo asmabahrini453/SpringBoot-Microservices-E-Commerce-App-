@@ -6,6 +6,8 @@ import com.springbootmicroserviceprojet.order.kafka.OrderConfirmation;
 import com.springbootmicroserviceprojet.order.kafka.OrderProducer;
 import com.springbootmicroserviceprojet.order.orderline.OrderLineRequest;
 import com.springbootmicroserviceprojet.order.orderline.OrderLineService;
+import com.springbootmicroserviceprojet.order.payment.PaymentClient;
+import com.springbootmicroserviceprojet.order.payment.PaymentRequest;
 import com.springbootmicroserviceprojet.order.product.ProductClient;
 import com.springbootmicroserviceprojet.order.product.PurchaseRequest;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,6 +28,7 @@ public class OrderService {
     private final ProductClient productClient;
     private final OrderLineService orderLineService;
     private final OrderProducer orderProducer;
+    private final PaymentClient paymentClient;
 
     @Transactional
     public Integer createOrder(OrderRequest request) {
@@ -54,7 +57,14 @@ public class OrderService {
         }
 
         //start the payment process
-
+        var paymentRequest = new PaymentRequest(
+                request.amount(),
+                request.paymentMethod(),
+                order.getId(),
+                order.getReference(),
+                customer
+        );
+        paymentClient.requestOrderPayment(paymentRequest);
 
         //send the order confirmation using the notifacation microservice (kafka)
         orderProducer.sendOrderConfirmation(

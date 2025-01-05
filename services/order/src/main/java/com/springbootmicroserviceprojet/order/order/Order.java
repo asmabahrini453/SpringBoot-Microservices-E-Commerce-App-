@@ -1,17 +1,11 @@
 package com.springbootmicroserviceprojet.order.order;
 
 import com.springbootmicroserviceprojet.order.orderline.OrderLine;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -34,7 +28,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 public class Order {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(unique = true,  nullable = false)
@@ -47,8 +41,8 @@ public class Order {
 
     private String customerId;
 
-    @OneToMany(mappedBy = "order")
-    private List<OrderLine> orderLines;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderLine> orderLines = new ArrayList<>();
 
     @CreatedDate
     @Column(updatable = false, nullable = false)
@@ -57,4 +51,8 @@ public class Order {
     @LastModifiedDate
     @Column(insertable = false)
     private LocalDateTime lastModifiedDate;
+
+    @Version
+    private Integer version=0;
+
 }

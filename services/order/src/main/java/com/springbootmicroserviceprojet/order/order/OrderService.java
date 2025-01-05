@@ -12,6 +12,7 @@ import com.springbootmicroserviceprojet.order.product.ProductClient;
 import com.springbootmicroserviceprojet.order.product.PurchaseRequest;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.StaleObjectStateException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,44 +34,55 @@ public class OrderService {
 
     @Transactional
     public Integer createOrder(OrderRequest request) {
-        var customer = this.customerClient.findCustomerById(request.customerId())
-                .orElseThrow(() -> new BusinessException("Cannot create order:: No customer exists with the provided ID"));
+        try {
+            // Ensure that the customer is found before proceeding
+            var customer = customerClient.findCustomerById(request.customerId())
+                    .orElseThrow(() -> new BusinessException("Cannot create order: No customer exists with the provided ID"));
 
-        var purchasedProducts = productClient.purchaseProducts(request.products());
+            // Ensure products are successfully purchased
+            var purchasedProducts = productClient.purchaseProducts(request.products());
 
-        var order = this.repository.save(mapper.toOrder(request));
+            // Save the main order and retrieve the saved order object
+            var order = repository.save(mapper.toOrder(request));
 
-        for (PurchaseRequest purchaseRequest : request.products()) {
-            orderLineService.saveOrderLine(
-                    new OrderLineRequest(
-                            null,
+            // Check if there are products in the order
+            if (request.products() != null && !request.products().isEmpty()) {
+                // Iterate through the purchased products and save the order lines
+                for (PurchaseRequest purchaseRequest : request.products()) {
+                    orderLineService.saveOrderLine(new OrderLineRequest(
+                            null,  // `null` should work if the `id` is auto-generated
                             order.getId(),
                             purchaseRequest.productId(),
                             purchaseRequest.quantity()
-                    )
+                    ));
+                }
+            }
+
+            // Handle the payment request for the order
+            var paymentRequest = new PaymentRequest(
+                    request.amount(),
+                    request.paymentMethod(),
+                    order.getId(),
+                    order.getReference(),
+                    customer
             );
+            paymentClient.requestOrderPayment(paymentRequest);
+
+            // Send an order confirmation
+            orderProducer.sendOrderConfirmation(new OrderConfirmation(
+                    request.reference(),
+                    request.amount(),
+                    request.paymentMethod(),
+                    customer,
+                    purchasedProducts
+            ));
+
+            return order.getId();  // Return the saved order's ID
+        } catch (StaleObjectStateException e) {
+            throw new BusinessException("The order was modified by another transaction. Please try again.");
         }
-        var paymentRequest = new PaymentRequest(
-                request.amount(),
-                request.paymentMethod(),
-                order.getId(),
-                order.getReference(),
-                customer
-        );
-        paymentClient.requestOrderPayment(paymentRequest);
-
-        orderProducer.sendOrderConfirmation(
-                new OrderConfirmation(
-                        request.reference(),
-                        request.amount(),
-                        request.paymentMethod(),
-                        customer,
-                        purchasedProducts
-                )
-        );
-
-        return order.getId();
     }
+
 
     public List<OrderResponse> findAllOrders() {
         return this.repository.findAll()

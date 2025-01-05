@@ -14,18 +14,17 @@ public class CustomerService {
 
     private final CustomerRepository repository;
 
-    // Constructor, other methods...
 
     public String createCustomer(CustomerRequest request) {
         Customer customer = new Customer(
-                null,  // ID will be auto-generated
+                null,
                 request.firstname(),
                 request.lastname(),
                 request.email(),
                 request.address()
         );
         repository.save(customer);
-        return customer.getId();  // or simply return the id if you prefer
+        return customer.getId();
     }
 
     public void updateCustomer(CustomerRequest request) {
@@ -47,9 +46,9 @@ public class CustomerService {
                         customer.getFirstname(),
                         customer.getLastname(),
                         customer.getEmail(),
-                        customer.getAddress()  // Ensure address is passed as well
+                        customer.getAddress()
                 ))
-                .collect(Collectors.toList());  // Ensure Collectors is imported
+                .collect(Collectors.toList());
     }
 
     public CustomerResponse findById(String customerId) {
@@ -60,7 +59,7 @@ public class CustomerService {
                 customer.getFirstname(),
                 customer.getLastname(),
                 customer.getEmail(),
-                customer.getAddress()  // Ensure address is passed as well
+                customer.getAddress()
         );
     }
 

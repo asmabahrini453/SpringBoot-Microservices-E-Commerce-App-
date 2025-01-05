@@ -18,12 +18,12 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
+@Table(name = "notifications")
 public class Notification {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private String id;
 
+    @Enumerated(EnumType.STRING)
     private NotificationType type;
 
     private LocalDateTime notificationDate;
@@ -34,10 +34,16 @@ public class Notification {
     @Embedded
     private PaymentConfirmation paymentConfirmation;
 
+    @Version
+    private Integer version;
+
     @PrePersist
     private void prePersist() {
         if (this.id == null) {
             this.id = UUID.randomUUID().toString();
+        }
+        if (this.version == null) {
+            this.version = 0;
         }
     }
 }

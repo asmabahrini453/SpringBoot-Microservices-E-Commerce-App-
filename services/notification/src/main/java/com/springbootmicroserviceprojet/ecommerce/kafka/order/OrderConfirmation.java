@@ -14,18 +14,24 @@ import java.util.List;
 @Getter
 @Setter
 public class OrderConfirmation {
-    @Column(insertable = false, updatable = false)
-         String orderReference;
-         BigDecimal totalAmount;
-    @Column(insertable = false, updatable = false)
-    PaymentMethod paymentMethod;
+    @Column(name = "order_confirmation_reference")
+    private String orderReference;
 
-        @ManyToOne
-         Customer customer;
+    private BigDecimal totalAmount;
 
-        @OneToMany
-         List<Product> products;
+    @Column(name = "order_payment_method")
+    private PaymentMethod paymentMethod;
 
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "id", column = @Column(name = "customer_id")),
+            @AttributeOverride(name = "firstname", column = @Column(name = "customer_firstname")),
+            @AttributeOverride(name = "lastname", column = @Column(name = "customer_lastname")),
+            @AttributeOverride(name = "email", column = @Column(name = "customer_email"))
+    })
+    private Customer customer;
 
-
+    @ElementCollection
+    @CollectionTable(name = "order_confirmation_products")
+    private List<Product> products;
 }

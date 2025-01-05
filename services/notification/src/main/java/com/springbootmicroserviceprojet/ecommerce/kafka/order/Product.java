@@ -1,22 +1,25 @@
 package com.springbootmicroserviceprojet.ecommerce.kafka.order;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.*;
 
 import java.math.BigDecimal;
 
-@Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Getter
 @Setter
+@Embeddable
 public class Product {
-    @Id
-     Integer productId;
-     String name;
-     String description;
-     BigDecimal price;
-     double quantity;
+ @Column(name = "product_id")
+ private Integer productId;
+
+ private String name;
+ private String description;
+ private BigDecimal price;
+ private double quantity;
 }

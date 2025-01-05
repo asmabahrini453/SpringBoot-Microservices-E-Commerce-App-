@@ -37,29 +37,6 @@ services:
     networks:
       - microservices-net
 
-  mongodb:
-    image: mongo
-    container_name: mongo_db
-    ports:
-      - 27017:27017
-    volumes:
-      - mongo:/data
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=asma
-      - MONGO_INITDB_ROOT_PASSWORD=asma
-
-  mongo-express:
-    image: mongo-express
-    container_name: mongo_express
-    restart: always
-    ports:
-      - 8081:8081
-    environment:
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=asma
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=asma
-      - ME_CONFIG_MONGODB_SERVER=mongo_db
-
-
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     container_name: zookeeper

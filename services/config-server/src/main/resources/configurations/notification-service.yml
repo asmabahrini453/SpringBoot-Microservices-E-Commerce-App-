@@ -1,14 +1,25 @@
 server:
   port: 8040
 spring:
-  data:
-    mongodb:
-      username: asma
-      password: asma
-      host: localhost
-      port: 27017
-      database: notification
-      authentication-database: admin
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/notification
+    username: asma
+    password: asma
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    baseline-on-migrate: true
+    enabled: true
+    baseline-description: "init"
+    baseline-version: 0
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+
   kafka:
     consumer:
       bootstrap-servers: localhost:9092
@@ -18,7 +29,7 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: '*'
-        spring.json.type.mapping: orderConfirmation:com.springbootmicroserviceprojet.order.kafka.OrderConfirmation,paymentConfirmation:com.springbootmicroserviceprojet.ecommerce.notification.PaymentNotificationRequest
+        spring.json.type.mapping: orderConfirmation:com.springbootmicroserviceprojet.ecommerce.kafka.order.OrderConfirmation,paymentConfirmation:com.springbootmicroserviceprojet.ecommerce.kafka.payment.PaymentConfirmation
   mail:
     host: localhost
     port: 1025

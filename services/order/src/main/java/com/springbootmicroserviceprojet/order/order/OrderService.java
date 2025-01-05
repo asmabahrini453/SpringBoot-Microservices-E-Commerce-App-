@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -25,26 +26,20 @@ public class OrderService {
     private final OrderRepository repository;
     private final OrderMapper mapper;
     private final CustomerClient customerClient;
+    private final PaymentClient paymentClient;
     private final ProductClient productClient;
     private final OrderLineService orderLineService;
     private final OrderProducer orderProducer;
-    private final PaymentClient paymentClient;
 
     @Transactional
     public Integer createOrder(OrderRequest request) {
-        //check if we have a customer or not
-        //here we used feign client for http protocol
         var customer = this.customerClient.findCustomerById(request.customerId())
                 .orElseThrow(() -> new BusinessException("Cannot create order:: No customer exists with the provided ID"));
 
-        //purchase the product using the product microservice
-        //here we used rest template for http protocol
         var purchasedProducts = productClient.purchaseProducts(request.products());
 
-        //persist the order object
         var order = this.repository.save(mapper.toOrder(request));
 
-        //persist the order line object
         for (PurchaseRequest purchaseRequest : request.products()) {
             orderLineService.saveOrderLine(
                     new OrderLineRequest(
@@ -55,8 +50,6 @@ public class OrderService {
                     )
             );
         }
-
-        //start the payment process
         var paymentRequest = new PaymentRequest(
                 request.amount(),
                 request.paymentMethod(),
@@ -66,7 +59,6 @@ public class OrderService {
         );
         paymentClient.requestOrderPayment(paymentRequest);
 
-        //send the order confirmation using the notifacation microservice (kafka)
         orderProducer.sendOrderConfirmation(
                 new OrderConfirmation(
                         request.reference(),

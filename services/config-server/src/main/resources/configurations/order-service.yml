@@ -8,7 +8,7 @@ spring:
     password: asma
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     #serialization with json for kafka

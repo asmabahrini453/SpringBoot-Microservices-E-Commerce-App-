@@ -1,18 +1,16 @@
 package com.springbootmicroserviceproject.ecommerce.customer;
+
+import jakarta.persistence.Embeddable;
 import lombok.*;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.validation.annotation.Validated;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Getter
 @Setter
-@Document
-@Validated
+@Embeddable
 public class Address {
     private String street;
     private String houseNumber;
     private String zipCode;
-
 }

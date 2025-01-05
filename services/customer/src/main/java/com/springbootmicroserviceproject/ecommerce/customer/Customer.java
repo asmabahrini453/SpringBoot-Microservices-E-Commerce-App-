@@ -1,24 +1,31 @@
 package com.springbootmicroserviceproject.ecommerce.customer;
 
+import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Getter
 @Setter
-@Document
+@Entity
 public class Customer {
     @Id
-    private String id ;
-    private String firstname ;
-    private String lastname ;
-    private String email ;
-    private Address address ;
+    private String id;
 
+    private String firstname;
+    private String lastname;
+    private String email;
 
+    @Embedded
+    private Address address;
 
-
+    @PrePersist
+    public void prePersist() {
+        // Generate a UUID when a new Customer is created if id is not already set
+        if (id == null) {
+            id = UUID.randomUUID().toString();
+        }
+    }
 }

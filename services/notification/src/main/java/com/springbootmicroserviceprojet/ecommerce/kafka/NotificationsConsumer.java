@@ -5,7 +5,6 @@ import com.springbootmicroserviceprojet.ecommerce.kafka.order.OrderConfirmation;
 import com.springbootmicroserviceprojet.ecommerce.kafka.payment.PaymentConfirmation;
 import com.springbootmicroserviceprojet.ecommerce.notification.Notification;
 import com.springbootmicroserviceprojet.ecommerce.notification.NotificationRepository;
-import com.springbootmicroserviceprojet.ecommerce.notification.NotificationType;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +12,9 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+
+import static com.springbootmicroserviceprojet.ecommerce.notification.NotificationType.ORDER_CONFIRMATION;
+import static com.springbootmicroserviceprojet.ecommerce.notification.NotificationType.PAYMENT_CONFIRMATION;
 import static java.lang.String.format;
 
 @Service
@@ -22,24 +24,23 @@ public class NotificationsConsumer {
 
     private final NotificationRepository repository;
     private final EmailService emailService;
+
     @KafkaListener(topics = "payment-topic")
     public void consumePaymentSuccessNotifications(PaymentConfirmation paymentConfirmation) throws MessagingException {
         log.info(format("Consuming the message from payment-topic Topic:: %s", paymentConfirmation));
         repository.save(
                 Notification.builder()
-                        .type(NotificationType.PAYMENT_CONFIRMATION)
+                        .type(PAYMENT_CONFIRMATION)
                         .notificationDate(LocalDateTime.now())
                         .paymentConfirmation(paymentConfirmation)
                         .build()
         );
-
-        //send email
-        var customerName = paymentConfirmation.customerFirstname() + " " + paymentConfirmation.customerLastname();
+        var customerName = paymentConfirmation.getCustomerFirstname() + " " + paymentConfirmation.getCustomerLastname();
         emailService.sendPaymentSuccessEmail(
-                paymentConfirmation.customerEmail(),
+                paymentConfirmation.getCustomerEmail(),
                 customerName,
-                paymentConfirmation.amount(),
-                paymentConfirmation.orderReference()
+                paymentConfirmation.getAmount(),
+                paymentConfirmation.getOrderReference()
         );
     }
 
@@ -48,18 +49,18 @@ public class NotificationsConsumer {
         log.info(format("Consuming the message from order-topic Topic:: %s", orderConfirmation));
         repository.save(
                 Notification.builder()
-                        .type(NotificationType.ORDER_CONFIRMATION)
+                        .type(ORDER_CONFIRMATION)
                         .notificationDate(LocalDateTime.now())
                         .orderConfirmation(orderConfirmation)
                         .build()
         );
-        var customerName = orderConfirmation.customer().firstname() + " " + orderConfirmation.customer().lastname();
+        var customerName = orderConfirmation.getCustomer().getFirstname() + " " + orderConfirmation.getCustomer().getLastname();
         emailService.sendOrderConfirmationEmail(
-                orderConfirmation.customer().email(),
+                orderConfirmation.getCustomer().getEmail(),
                 customerName,
-                orderConfirmation.totalAmount(),
-                orderConfirmation.orderReference(),
-                orderConfirmation.products()
+                orderConfirmation.getTotalAmount(),
+                orderConfirmation.getOrderReference(),
+                orderConfirmation.getProducts()
         );
     }
 }

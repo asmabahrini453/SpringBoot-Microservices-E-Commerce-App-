@@ -1,12 +1,11 @@
 package com.springbootmicroserviceproject.ecommerce.customer;
 
-
-import com.springbootmicroserviceproject.ecommerce.customer.exception.CustomerNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -14,53 +13,64 @@ import java.util.stream.Collectors;
 public class CustomerService {
 
     private final CustomerRepository repository;
-    private final CustomerMapper mapper;
+
+    // Constructor, other methods...
 
     public String createCustomer(CustomerRequest request) {
-        var customer = this.repository.save(mapper.toCustomer(request));
-        return customer.getId();
+        Customer customer = new Customer(
+                null,  // ID will be auto-generated
+                request.firstname(),
+                request.lastname(),
+                request.email(),
+                request.address()
+        );
+        repository.save(customer);
+        return customer.getId();  // or simply return the id if you prefer
     }
 
     public void updateCustomer(CustomerRequest request) {
-        var customer = this.repository.findById(request.id())
-                .orElseThrow(() -> new CustomerNotFoundException(
-                        String.format("Cannot update customer:: No customer found with the provided ID: %s", request.id())
-                ));
-        mergeCustomer(customer, request);
-        this.repository.save(customer);
-    }
+        Customer existingCustomer = repository.findById(request.id())
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-    private void mergeCustomer(Customer customer, CustomerRequest request) {
-        if (StringUtils.isNotBlank(request.firstname())) {
-            customer.setFirstname(request.firstname());
-        }
-        if (StringUtils.isNotBlank(request.email())) {
-            customer.setEmail(request.email());
-        }
-        if (request.address() != null) {
-            customer.setAddress(request.address());
-        }
+        existingCustomer.setFirstname(request.firstname());
+        existingCustomer.setLastname(request.lastname());
+        existingCustomer.setEmail(request.email());
+        existingCustomer.setAddress(request.address());
+
+        repository.save(existingCustomer);
     }
 
     public List<CustomerResponse> findAllCustomers() {
-        return  this.repository.findAll()
-                .stream()
-                .map(this.mapper::fromCustomer)
-                .collect(Collectors.toList());
+        return repository.findAll().stream()
+                .map(customer -> new CustomerResponse(
+                        customer.getId(),
+                        customer.getFirstname(),
+                        customer.getLastname(),
+                        customer.getEmail(),
+                        customer.getAddress()  // Ensure address is passed as well
+                ))
+                .collect(Collectors.toList());  // Ensure Collectors is imported
     }
 
-    public CustomerResponse findById(String id) {
-        return this.repository.findById(id)
-                .map(mapper::fromCustomer)
-                .orElseThrow(() -> new CustomerNotFoundException(String.format("No customer found with the provided ID: %s", id)));
+    public CustomerResponse findById(String customerId) {
+        Customer customer = repository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+        return new CustomerResponse(
+                customer.getId(),
+                customer.getFirstname(),
+                customer.getLastname(),
+                customer.getEmail(),
+                customer.getAddress()  // Ensure address is passed as well
+        );
     }
 
-    public boolean existsById(String id) {
-        return this.repository.findById(id)
-                .isPresent();
+    public boolean existsById(String customerId) {
+        return repository.existsById(customerId);
     }
 
-    public void deleteCustomer(String id) {
-        this.repository.deleteById(id);
+    public void deleteCustomer(String customerId) {
+        Customer customer = repository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+        repository.delete(customer);
     }
 }

@@ -1,15 +1,16 @@
 package com.springbootmicroserviceprojet.order.customer;
 
+
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.Optional;
 
-//we're uwing openFeign for the http potocol here
 @FeignClient(
         name = "customer-service",
-        url = "${application.config.customer-url}" //the sutomer url we made xith the apigatewzy in order-service.yml in configurations
+        url = "${application.config.customer-url}"
 )
 public interface CustomerClient {
 

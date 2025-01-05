@@ -1,6 +1,12 @@
 server:
   port: 8070
+
 spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9098/realms/micro-services
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/orders
@@ -8,7 +14,7 @@ spring:
     password: asma
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
@@ -22,9 +28,10 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         spring.json.type.mapping: orderConfirmation:com.springbootmicroserviceprojet.order.kafka.OrderConfirmation
+
 application:
   config:
-    customer-url: http://localhost:8222/api/v1/customers #8222 : the api gateway port
+    customer-url: http://localhost:8222/api/v1/customers  #8222 : the api gateway port
     payment-url: http://localhost:8222/api/v1/payments
     product-url: http://localhost:8222/api/v1/products
 
